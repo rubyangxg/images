@@ -8,11 +8,19 @@ RUN \
     apt-get update && \
     apt-get install -y upx-ucl libx11-dev && \
     cd /xseld && \
-    GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" && \
+    if [ `uname -m` = "aarch64" ] ; then \
+           GOOS=linux GOARCH=arm64 go build -ldflags="-s -w"; \
+        else \
+           GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"; \
+        fi && \
     upx /xseld/xseld && \
     cd /fileserver && \
     go test -race && \
-    GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" && \
+    if [ `uname -m` = "aarch64" ] ; then \
+           GOOS=linux GOARCH=arm64 go build -ldflags="-s -w"; \
+        else \
+           GOOS=linux GOARCH=amd64 go build -ldflags="-s -w"; \
+        fi && \
     upx /fileserver/fileserver
 
 FROM ubuntu:20.04
@@ -49,7 +57,6 @@ RUN \
     xfonts-base \
     xfonts-encodings \
     xfonts-utils \
-    flashplugin-installer \
     xvfb \
     pulseaudio \
     fluxbox \
@@ -58,6 +65,9 @@ RUN \
     wmctrl \
     libnss-wrapper \
     xsel && \
+    if [ `uname -m` = "amd64" ] ; then \
+           apt install -y flashplugin-installer; \
+        fi && \
     mkdir -p /var/lib/locales/supported.d/ && grep UTF-8 /usr/share/i18n/SUPPORTED > /var/lib/locales/supported.d/all && \
     locale-gen && update-locale && \
     fc-cache -f -v && \

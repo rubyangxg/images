@@ -1,4 +1,4 @@
-FROM browsers/base:7.3
+FROM base_image:latest
 
 ARG VERSION
 ARG PACKAGE=firefox
@@ -14,7 +14,11 @@ RUN  \
             add-apt-repository -y $PPA \
         ) || true && \
         apt-get update && \
-        apt-get -y --no-install-recommends install iproute2 libavcodec58 $PACKAGE=$VERSION && \
+        if [ `uname -m` = "aarch64" ] ; then \
+                   apt-get -y --no-install-recommends install iproute2 libavcodec58 firefox; \
+                else \
+                   apt-get -y --no-install-recommends install iproute2 libavcodec58 $PACKAGE=$VERSION; \
+                fi && \
         ( [ "$PACKAGE" != "firefox" ] && ln /usr/bin/$PACKAGE /usr/bin/firefox ) || true && \
         firefox --version && \
         rm -Rf /tmp/* && rm -Rf /var/lib/apt/lists/*

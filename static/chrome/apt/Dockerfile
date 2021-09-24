@@ -1,4 +1,4 @@
-FROM browsers/base:7.3
+FROM base_image:latest
 
 ARG VERSION
 ARG PACKAGE=google-chrome-stable
@@ -8,11 +8,18 @@ LABEL browser=$PACKAGE:$VERSION
 
 RUN \
         curl -s https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
-        echo 'deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main' > /etc/apt/sources.list.d/google.list && \
-        apt-get update && \
-        apt-get -y --no-install-recommends install iproute2 $PACKAGE=$VERSION && \
-        sed -i -e 's@exec -a "$0" "$HERE/chrome"@& --no-sandbox --disable-gpu@' /opt/google/$INSTALL_DIR/google-chrome && \
-        chown root:root /opt/google/$INSTALL_DIR/chrome-sandbox && \
-        chmod 4755 /opt/google/$INSTALL_DIR/chrome-sandbox && \
-        google-chrome --version && \
+        if [ `uname -m` = "aarch64" ] ; then \
+                   echo 'deb [arch=arm64] https://dl.google.com/linux/chrome/deb/ stable main' > /etc/apt/sources.list.d/google.list && \
+                   apt-get update && \
+                   apt-get -y --no-install-recommends install iproute2 && \
+                   apt-get install chromium-browser $$ \
+                   chromium-browser --version; \
+                else \
+                   echo 'deb [arch=amd64] https://dl.google.com/linux/chrome/deb/ stable main' > /etc/apt/sources.list.d/google.list && \
+                   apt-get update && \
+                   apt-get -y --no-install-recommends install iproute2 $PACKAGE=$VERSION && \
+                   chown root:root /opt/google/$INSTALL_DIR/chrome-sandbox && \
+                   chmod 4755 /opt/google/$INSTALL_DIR/chrome-sandbox && \
+                   google-chrome --version; \
+                fi && \
         rm -Rf /tmp/* && rm -Rf /var/lib/apt/lists/*
